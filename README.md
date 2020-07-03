@@ -1,2 +1,2 @@
 # note
-wxpython notee
+wxpython note
