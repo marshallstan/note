@@ -17,7 +17,6 @@ class ListPanel(wx.Panel):
         main_sizer.Add(self.note_list_panel, flag=wx.EXPAND, proportion=1)
 
         self.SetSizer(main_sizer)
-        pub.subscribe(self._on_note_created, 'note.created')
 
         self._note_ids = []
         pub.subscribe(self._on_notebook_selected, 'notebook.selected')
