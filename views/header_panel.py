@@ -6,6 +6,7 @@ class HeaderPanel(wx.Panel):
     def __init__(self, parent):
         super().__init__(parent, style=wx.BORDER_NONE)
         self._init_ui()
+        self.note_count = 0
 
     def _init_ui(self):
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -46,3 +47,14 @@ class HeaderPanel(wx.Panel):
         self.search_bar.SetHint('搜索当前笔记本')
 
         self.main_sizer.Add(self.search_bar, flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=8)
+
+    def set_title(self, title):
+        self.st_notebook_name.SetLabel(title)
+
+    def set_count(self, count):
+        self.note_count = count
+        self.st_note_count.SetLabel(f'{self.note_count}条笔记')
+
+    def change_count(self, changed_count):
+        self.note_count += changed_count
+        self.st_note_count.SetLabel(f'{self.note_count}条笔记')

@@ -2,6 +2,7 @@ import wx.lib.agw.customtreectrl as customtreectrl
 from models import Notebook
 import wx
 from .notebook_dialog import NotebookDialog
+from pubsub import pub
 
 
 class NoteTree(customtreectrl.CustomTreeCtrl):
@@ -15,6 +16,7 @@ class NoteTree(customtreectrl.CustomTreeCtrl):
         self._init_ui()
         self._init_popup_menu()
         self._init_event()
+        wx.CallAfter(self.DoSelectItem, self.GetRootItem().GetChildren()[0])
 
     def _load_notebooks(self, parent_node, parent_id):
         child_notebooks = Notebook.select().where(Notebook.parent_id == parent_id)
@@ -54,6 +56,13 @@ class NoteTree(customtreectrl.CustomTreeCtrl):
         self.Bind(wx.EVT_MENU, self._create_notebook, id=self.menu_id_create_notebook)
         self.Bind(wx.EVT_MENU, self._edit_notebook, id=self.menu_id_edit_notebook)
         self.Bind(wx.EVT_MENU, self._delete_notebook, id=self.menu_id_delete_notebook)
+        self.Bind(wx.EVT_TREE_SEL_CHANGED, self._on_tree_selection_changed)
+
+    def _on_tree_selection_changed(self, _):
+        if self.notebook_id:
+            pub.sendMessage('notebook.selected', notebook=self.GetSelection().GetData())
+        else:
+            pub.sendMessage('root.selected')
 
     def _show_popup_menu(self, _):
         self.PopupMenu(self.menu)

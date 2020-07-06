@@ -19,7 +19,9 @@ class TextEditor(wx.Panel):
             'code-block': False
         }
         self.note = None
-        pub.subscribe(self.load_note, 'note.created')
+        # pub.subscribe(self.load_note, 'note.created')
+        pub.subscribe(self.load_note, 'note.selected')
+        pub.subscribe(self.clear_note, 'note.empty')
         self.webview.set_js_bindings(
             [('pyOnFormatChanged', self._on_format_changed),
              ('pyOnContentChanged', self._on_content_changed)],
@@ -80,8 +82,21 @@ class TextEditor(wx.Panel):
         self.note = note
         self.tc_title.ChangeValue(self.note.title)
         self.webview.run_js('quill.loadContent', self.note.content)
+        self._reset_format()
+
+    def _reset_format(self):
+        for key in self.content_format:
+            self.content_format[key] = False
+        self.toolbar.display_format(self.content_format.copy())
 
     def _on_content_changed(self, content):
         if self.note:
             self.note.set_content(content)
             pub.sendMessage('note.updated', note=self.note)
+
+    def clear_note(self):
+        if self.note:
+            self.note = None
+            self.tc_title.ChangeValue('')
+            self.webview.run_js('quill.loadContent', '')
+            self._reset_format()

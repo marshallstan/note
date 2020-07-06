@@ -5,6 +5,7 @@ import uuid
 import os
 from config import CONFIG
 import re
+import shutil
 
 
 def generate_uuid():
@@ -49,3 +50,7 @@ class Note(BaseModel):
         with open(self.snippet_file, 'w', encoding='utf-8') as writer:
             writer.write(re.sub(r'<.*?>', '', content))
         self.save()
+
+    def delete_instance(self, *args, **kwargs):
+        shutil.rmtree(self.note_dir, ignore_errors=True)
+        super().delete_instance(*args, **kwargs)
