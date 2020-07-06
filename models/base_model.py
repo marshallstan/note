@@ -8,3 +8,7 @@ class BaseModel(Model):
 
     class Meta:
         database = SqliteDatabase('data/note.db', pragmas={'foreign_keys': 1})
+
+    def save(self, *args, **kwargs):
+        self.updated_at = datetime.datetime.now()
+        return super().save(*args, **kwargs)
