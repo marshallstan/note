@@ -23,6 +23,7 @@ class ListPanel(wx.Panel):
         pub.subscribe(self._on_root_selected, 'root.selected')
         pub.subscribe(self._on_note_created, 'note.created')
         pub.subscribe(self._on_note_deleting, 'note.deleting')
+        pub.subscribe(self._on_note_sorting, 'note.sorting')
 
     def add(self, notes):
         self.note_list_panel.clear()
@@ -35,20 +36,20 @@ class ListPanel(wx.Panel):
         self._note_ids.insert(0, note.id)
 
     def _on_notebook_selected(self, notebook):
-        notes = list(notebook.notes.order_by(Note.updated_at.desc()))
+        notes = list(notebook.notes.order_by(self.header_panel.sort_option))
         self.header_panel.set_title(notebook.name)
         self.header_panel.set_count(len(notes))
         self._load(notes)
 
     def _on_root_selected(self):
-        notes = list(Note.select().order_by(Note.updated_at.desc()))
+        notes = list(Note.select().order_by(self.header_panel.sort_option))
         self.header_panel.set_title('所有笔记')
         self.header_panel.set_count(len(notes))
         self._load(notes)
 
-    def _load(self, notes):
+    def _load(self, notes, preserve_select=False):
         if len(notes):
-            self.note_list_panel.replace(notes)
+            self.note_list_panel.replace(notes, preserve_select)
             self.note_list_panel.select(notes[0])
         else:
             self.note_list_panel.clear()
@@ -65,3 +66,7 @@ class ListPanel(wx.Panel):
             self.note_list_panel.select(Note.get_by_id(self._note_ids[next_index]))
         self._note_ids.remove(note.id)
         self.header_panel.change_count(-1)
+
+    def _on_note_sorting(self, sort_param):
+        notes = list(Note.select().where(Note.id.in_(self._note_ids)).order_by(sort_param))
+        self._load(notes, True)

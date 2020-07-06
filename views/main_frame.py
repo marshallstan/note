@@ -3,6 +3,8 @@ import wx.aui
 from .nav_panel import NavPanel
 from .list_panel import ListPanel
 from .text_editor import TextEditor
+from pubsub import pub
+from .notebook_dialog import NotebookDialog
 
 
 class MainFrame(wx.Frame):
@@ -39,3 +41,23 @@ class MainFrame(wx.Frame):
 
     def _register_listeners(self):
         self.Bind(wx.EVT_CLOSE, self.on_frame_closing)
+        pub.subscribe(self._on_notebook_editing, 'notebook.editing')
+        pub.subscribe(self._on_notebook_deleting, 'notebook.deleting')
+
+    def _on_notebook_editing(self):
+        notebook = self.nav_panel.note_tree.notebook
+        with NotebookDialog(self, notebook) as dialog:
+            if dialog.ShowModal() == wx.ID_OK:
+                notebook.name = dialog.get_name()
+                notebook.description = dialog.get_description()
+                notebook.save()
+
+                self.nav_panel.note_tree.set_text(notebook.name)
+                self.list_panel.header_panel.set_title(notebook.name)
+
+    def _on_notebook_deleting(self):
+        dialog = wx.MessageDialog(self, '此笔记本中的任何笔记都将被删除，这个操作不能恢复。', '确定要删除吗？', style=wx.OK|wx.CANCEL|wx.CANCEL_DEFAULT)
+        dialog.SetOKCancelLabels('确定', '取消')
+
+        if dialog.ShowModal() == wx.ID_OK:
+            self.nav_panel.note_tree.delete_selection()

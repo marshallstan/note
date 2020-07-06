@@ -69,11 +69,17 @@ class NoteListPanel(scrolled.ScrolledPanel):
         else:
             self.SetupScrolling(scroll_x=False)
 
-    def replace(self, notes):
+    def replace(self, notes, preserve_select=False):
         self.list_sizer.Clear(True)
         preview_panels = list((NotePreviewPanel(self, note), 0, wx.EXPAND) for note in notes)
         self.list_sizer.AddMany(preview_panels)
         self.show_empty(False)
+        if preserve_select:
+            if self.selected_note:
+                self._get_preview_panel(self.selected_note).focus(True)
+        else:
+            self.selected_note = None
+            self.select(notes[0])
 
     def select(self, note):
         if self.selected_note:

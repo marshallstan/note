@@ -78,23 +78,18 @@ class NoteTree(customtreectrl.CustomTreeCtrl):
                 self.DoSelectItem(item)
 
     def _edit_notebook(self, _):
-        notebook = self.GetSelection().GetData()
-        with NotebookDialog(self, notebook) as dialog:
-            if dialog.ShowModal() == wx.ID_OK:
-                notebook.name = dialog.get_name()
-                notebook.description = dialog.get_description()
-                notebook.save()
-
-                self.SetItemText(self.GetSelection(), notebook.name)
+        pub.sendMessage('notebook.editing')
 
     def _delete_notebook(self, _):
-        dialog = wx.MessageDialog(self, '此笔记本中的任何笔记都将被删除，这个操作不能恢复。', '确定要删除吗？', style=wx.OK | wx.CANCEL | wx.CANCEL_DEFAULT)
-        dialog.SetOKCancelLabels('确定', '取消')
-
-        if dialog.ShowModal() == wx.ID_OK:
-            self.GetSelection().GetData().delete_instance()
-            self.Delete(self.GetSelection())
+        pub.sendMessage('notebook.deleting')
 
     @property
     def notebook_id(self):
         return self.GetSelection().GetData().id
+
+    def set_text(self, text):
+        self.SetItemText(self.GetSelection(), text)
+
+    def delete_selection(self):
+        self.GetSelection().GetData().delete_instance()
+        self.Delete(self.GetSelection())
