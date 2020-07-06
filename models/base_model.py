@@ -1,5 +1,6 @@
 from peewee import Model, DateTimeField, SqliteDatabase
 import datetime
+from config import CONFIG
 
 
 class BaseModel(Model):
@@ -7,7 +8,7 @@ class BaseModel(Model):
     updated_at = DateTimeField(default=datetime.datetime.now)
 
     class Meta:
-        database = SqliteDatabase('data/note.db', pragmas={'foreign_keys': 1})
+        database = SqliteDatabase(CONFIG['database']['db_file'], pragmas={'foreign_keys': 1})
 
     def save(self, *args, **kwargs):
         self.updated_at = datetime.datetime.now()

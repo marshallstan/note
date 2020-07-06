@@ -1,6 +1,7 @@
 import wx
 from .header_panel import HeaderPanel
 from .note_list_panel import NoteListPanel
+from pubsub import pub
 
 
 class ListPanel(wx.Panel):
@@ -15,8 +16,12 @@ class ListPanel(wx.Panel):
         main_sizer.Add(self.note_list_panel, flag=wx.EXPAND, proportion=1)
 
         self.SetSizer(main_sizer)
-        self.add([1, 2, 3])
+        # self.add([1])
+        pub.subscribe(self._on_note_created, 'note.created')
 
     def add(self, notes):
         self.note_list_panel.clear()
         self.note_list_panel.add(notes)
+
+    def _on_note_created(self, note):
+        self.add([note])

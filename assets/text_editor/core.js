@@ -17,3 +17,16 @@ var quill = new Quill('#editor', {
 quill.on('selection-change', function(){
   pyOnFormatChanged(quill.getFormat());
 });
+
+let editor = quill.container.firstChild;
+quill.loadContent = function(value) {
+  quill.setContents([]);
+  editor.innerHTML = value;
+};
+
+quill.on('text-change', function(_,__,source){
+  if(source === 'api') {
+    return;
+  }
+  pyOnContentChanged(editor.innerHTML);
+});

@@ -2,6 +2,7 @@ import wx
 import os
 from .webview import Webview
 from .text_editor_toolbar import TextEditorToolbar
+from pubsub import pub
 
 
 class TextEditor(wx.Panel):
@@ -17,6 +18,12 @@ class TextEditor(wx.Panel):
             'background': False,
             'code-block': False
         }
+        self.note = None
+        pub.subscribe(self.load_note, 'note.created')
+        self.webview.set_js_bindings(
+            [('pyOnFormatChanged', self._on_format_changed),
+             ('pyOnContentChanged', self._on_content_changed)],
+        )
 
     def _init_ui(self):
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -39,6 +46,13 @@ class TextEditor(wx.Panel):
         self.tc_title = wx.TextCtrl(self)
         self.main_sizer.Add(self.tc_title, flag=wx.EXPAND|wx.LEFT|wx.RIGHT,border=15)
         self.main_sizer.AddSpacer(20)
+        self.tc_title.Bind(wx.EVT_TEXT, self._on_title_changed)
+
+    def _on_title_changed(self, _):
+        if self.note:
+            self.note.title = self.tc_title.Value.strip()
+            self.note.save()
+            pub.sendMessage('note.updated', note=self.note)
 
     def _init_toolbar(self):
         self.toolbar = TextEditorToolbar(self)
@@ -61,3 +75,13 @@ class TextEditor(wx.Panel):
                 self.content_format[key] = format_val
                 changed_format[key] = format_val
         self.toolbar.display_format(changed_format)
+
+    def load_note(self, note):
+        self.note = note
+        self.tc_title.ChangeValue(self.note.title)
+        self.webview.run_js('quill.loadContent', self.note.content)
+
+    def _on_content_changed(self, content):
+        if self.note:
+            self.note.set_content(content)
+            pub.sendMessage('note.updated', note=self.note)

@@ -85,3 +85,7 @@ class NoteTree(customtreectrl.CustomTreeCtrl):
         if dialog.ShowModal() == wx.ID_OK:
             self.GetSelection().GetData().delete_instance()
             self.Delete(self.GetSelection())
+
+    @property
+    def notebook_id(self):
+        return self.GetSelection().GetData().id
