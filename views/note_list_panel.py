@@ -83,7 +83,8 @@ class NoteListPanel(scrolled.ScrolledPanel):
 
     def select(self, note):
         if self.selected_note:
-            self._get_preview_panel(self.selected_note).focus(False)
+            if self._get_preview_panel(self.selected_note):
+                self._get_preview_panel(self.selected_note).focus(False)
         self._get_preview_panel(note).focus()
         self.selected_note = note
         pub.sendMessage('note.selected', note=self.selected_note)
