@@ -16,6 +16,7 @@ class NoteListPanel(scrolled.ScrolledPanel):
         self.SetupScrolling(scroll_x=False)
         self.Bind(wx.EVT_SIZE, self.on_size)
         self.selected_note = None
+        self.keyword = None
         pub.subscribe(self._on_note_updated, 'note.updated')
 
     def on_size(self, evt):
@@ -47,6 +48,7 @@ class NoteListPanel(scrolled.ScrolledPanel):
         self.selected_note = None
         self.list_sizer.Clear(True)
         self.show_empty(True)
+        self.keyword = None
 
     def show_empty(self, show=True):
         if show and not self.main_sizer.IsShown(self.empty_msg_sizer):
@@ -69,7 +71,7 @@ class NoteListPanel(scrolled.ScrolledPanel):
         else:
             self.SetupScrolling(scroll_x=False)
 
-    def replace(self, notes, preserve_select=False):
+    def replace(self, notes, preserve_select=False, keyword=None):
         self.list_sizer.Clear(True)
         preview_panels = list((NotePreviewPanel(self, note), 0, wx.EXPAND) for note in notes)
         self.list_sizer.AddMany(preview_panels)
@@ -80,6 +82,7 @@ class NoteListPanel(scrolled.ScrolledPanel):
         else:
             self.selected_note = None
             self.select(notes[0])
+        self.keyword = keyword
 
     def select(self, note):
         if self.selected_note:
@@ -87,7 +90,7 @@ class NoteListPanel(scrolled.ScrolledPanel):
                 self._get_preview_panel(self.selected_note).focus(False)
         self._get_preview_panel(note).focus()
         self.selected_note = note
-        pub.sendMessage('note.selected', note=self.selected_note)
+        pub.sendMessage('note.selected', note=self.selected_note, keyword=self.keyword)
 
     def _on_note_updated(self, note):
         if self.selected_note:

@@ -3,6 +3,7 @@ from .header_panel import HeaderPanel
 from .note_list_panel import NoteListPanel
 from pubsub import pub
 from models.note import Note
+from services.note_search_service import NoteSearchService
 
 
 class ListPanel(wx.Panel):
@@ -24,33 +25,45 @@ class ListPanel(wx.Panel):
         pub.subscribe(self._on_note_created, 'note.created')
         pub.subscribe(self._on_note_deleting, 'note.deleting')
         pub.subscribe(self._on_note_sorting, 'note.sorting')
+        self.searcher = NoteSearchService()
+        pub.subscribe(self._on_note_updated, 'note.updated')
+        self._notebook = None
+        pub.subscribe(self._on_note_searching, 'note.searching')
 
     def add(self, notes):
         self.note_list_panel.clear()
         self.note_list_panel.add(notes)
+
+    def _on_note_updated(self, note):
+        self.searcher.update_doc(note)
 
     def _on_note_created(self, note):
         self.header_panel.change_count(1)
         self.note_list_panel.prepend(note)
         self.note_list_panel.select(note)
         self._note_ids.insert(0, note.id)
+        self.searcher.add_doc(note)
 
     def _on_notebook_selected(self, notebook):
         notes = list(notebook.notes.order_by(self.header_panel.sort_option))
         self.header_panel.set_title(notebook.name)
         self.header_panel.set_count(len(notes))
         self._load(notes)
+        self._notebook = notebook
+        self.header_panel.reset_search_bar()
 
     def _on_root_selected(self):
         notes = list(Note.select().order_by(self.header_panel.sort_option))
         self.header_panel.set_title('所有笔记')
         self.header_panel.set_count(len(notes))
         self._load(notes)
+        self._notebook = None
+        self.header_panel.reset_search_bar()
 
-    def _load(self, notes, preserve_select=False):
+    def _load(self, notes, preserve_select=False, keyword=None):
         if len(notes):
-            self.note_list_panel.replace(notes, preserve_select)
-            self.note_list_panel.select(notes[0])
+            self.note_list_panel.replace(notes, preserve_select, keyword)
+            # self.note_list_panel.select(notes[0])
         else:
             self.note_list_panel.clear()
         self._note_ids = list(map(lambda note: note.id, notes))
@@ -66,7 +79,27 @@ class ListPanel(wx.Panel):
             self.note_list_panel.select(Note.get_by_id(self._note_ids[next_index]))
         self._note_ids.remove(note.id)
         self.header_panel.change_count(-1)
+        self.searcher.delete_doc(note)
 
     def _on_note_sorting(self, sort_param):
         notes = list(Note.select().where(Note.id.in_(self._note_ids)).order_by(sort_param))
         self._load(notes, True)
+
+    def _on_note_searching(self, keyword, is_global_search):
+        if keyword:
+            if is_global_search or not self._notebook:
+                notebook_id = None
+            else:
+                notebook_id = self._notebook.id
+            note_ids = self.searcher.search(keyword, notebook_id=notebook_id)
+            if note_ids:
+                notes = list(Note.select().where(Note.id.in_(note_ids)).order_by(self.header_panel.sort_option))
+            else:
+                notes = []
+            self._load(notes)
+            self.header_panel.set_count(len(notes))
+        else:
+            if self._notebook:
+                self._on_notebook_selected(self._notebook)
+            else:
+                self._on_root_selected()

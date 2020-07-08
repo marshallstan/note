@@ -30,3 +30,8 @@ quill.on('text-change', function(_,__,source){
   }
   pyOnContentChanged(editor.innerHTML);
 });
+
+let searcher = new Searcher(quill);
+quill.findAll = function(keyword) {
+  searcher.findAll(keyword);
+};

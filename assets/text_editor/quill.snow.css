@@ -943,3 +943,7 @@
 .ql-container.ql-snow {
   border: 1px solid #ccc;
 }
+.marked {
+  background-color: #fefb39;
+  display: inline;
+}

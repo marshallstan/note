@@ -78,11 +78,13 @@ class TextEditor(wx.Panel):
                 changed_format[key] = format_val
         self.toolbar.display_format(changed_format)
 
-    def load_note(self, note):
+    def load_note(self, note, keyword):
         self.note = note
         self.tc_title.ChangeValue(self.note.title)
         self.webview.run_js('quill.loadContent', self.note.content)
         self._reset_format()
+        if keyword:
+            self.webview.run_js('quill.findAll', keyword)
 
     def _reset_format(self):
         for key in self.content_format:

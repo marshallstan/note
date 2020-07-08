@@ -15,6 +15,8 @@ class HeaderPanel(wx.Panel):
         self.sort_option = Note.updated_at.desc()
         self._rename_notebook_menu_id = wx.NewIdRef()
         self._delete_notebook_menu_id = wx.NewIdRef()
+        self._global_search_menu_id = wx.NewIdRef()
+        self.is_global_search = False
         self._init_event()
 
     def _init_ui(self):
@@ -42,6 +44,8 @@ class HeaderPanel(wx.Panel):
         self.btn_display_notebook_options.Bind(wx.EVT_BUTTON, self._show_action_menu)
         self.Bind(wx.EVT_MENU, lambda _: pub.sendMessage('notebook.editing'), id=self._rename_notebook_menu_id)
         self.Bind(wx.EVT_MENU, lambda _: pub.sendMessage('notebook.deleting'), id=self._delete_notebook_menu_id)
+        self.search_bar.Bind(wx.EVT_TEXT, self._on_searching)
+        self.Bind(wx.EVT_MENU, self._on_global_search_menu_checked, id=self._global_search_menu_id)
 
     def _show_sort_menu(self, _):
         menu = self._build_sort_menu()
@@ -87,7 +91,10 @@ class HeaderPanel(wx.Panel):
 
     def set_count(self, count):
         self.note_count = count
-        self.st_note_count.SetLabel(f'{self.note_count}条笔记')
+        if self.keyword:
+            self.st_note_count.SetLabel(f'找到{self.note_count}条笔记')
+        else:
+            self.st_note_count.SetLabel(f'{self.note_count}条笔记')
 
     def change_count(self, changed_count):
         self.note_count += changed_count
@@ -117,3 +124,28 @@ class HeaderPanel(wx.Panel):
         menu = self._build_action_menu()
         self.PopupMenu(menu)
         menu.Destroy()
+
+    def _on_searching(self, e):
+        pub.sendMessage('note.searching', keyword=self.keyword, is_global_search=self.is_global_search)
+
+    def _on_global_search_menu_checked(self, e):
+        self.is_global_search = e.IsChecked()
+        self._build_search_bar_menu()
+        if self.keyword:
+            pub.sendMessage('note.searching', keyword=self.keyword, is_global_search=self.is_global_search)
+
+    def _build_search_bar_menu(self):
+        menu = wx.Menu()
+        menu.AppendCheckItem(self._global_search_menu_id, '搜索所有笔记本').Check(self.is_global_search)
+        self.search_bar.SetMenu(menu)
+        if self.is_global_search:
+            self.search_bar.SetHint('搜索所有笔记本')
+        else:
+            self.search_bar.SetHint('搜索当前笔记本')
+
+    def reset_search_bar(self):
+        self.search_bar.ChangeValue('')
+
+    @property
+    def keyword(self):
+        return self.search_bar.GetValue().strip()
