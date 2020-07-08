@@ -13,9 +13,9 @@ class HeaderPanel(wx.Panel):
         self._sort_menu_ids = wx.NewIdRef(6)
         self._checked_menu_id = self._sort_menu_ids[0]
         self.sort_option = Note.updated_at.desc()
-        self._init_event()
         self._rename_notebook_menu_id = wx.NewIdRef()
         self._delete_notebook_menu_id = wx.NewIdRef()
+        self._init_event()
 
     def _init_ui(self):
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
