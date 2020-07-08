@@ -19,7 +19,11 @@ class NotePreviewPanel(wx.Panel):
         v_sizer = wx.BoxSizer(wx.VERTICAL)
         self.st_note_title = wx.StaticText(self, style=wx.ST_ELLIPSIZE_END)
         self.st_note_preview = wx.StaticText(self, style=wx.ST_ELLIPSIZE_END)
-        self.st_note_date = wx.StaticText(self, label=note.updated_at.strftime('%Y-%m-%d'))
+        if isinstance(note.updated_at, str):
+            label = note.updated_at[:10]
+        else:
+            label = note.updated_at.strftime('%Y-%m-%d')
+        self.st_note_date = wx.StaticText(self, label=label)
 
         self.st_note_title.SetFont(wx.Font(wx.FontInfo(14).Bold()))
         self.st_note_preview.SetFont(wx.Font(wx.FontInfo(14).Light()))
@@ -44,7 +48,11 @@ class NotePreviewPanel(wx.Panel):
     def update(self, note):
         self.st_note_title.SetLabel(note.title or '无标题')
         self.st_note_preview.SetLabel(note.snippet)
-        self.st_note_date.SetLabel(note.updated_at.strftime('%Y-%m-%d'))
+        if isinstance(note.updated_at, str):
+            label = note.updated_at[:10]
+        else:
+            label = note.updated_at.strftime('%Y-%m-%d')
+        self.st_note_date.SetLabel(label)
 
     def focus(self, enable_focus=True):
         if enable_focus:
