@@ -5,7 +5,7 @@ certifi==2020.4.5.1
 chardet==3.0.4
 idna==2.9
 jieba==0.42.1
-Jinja2==2.11.2
+Jinja2==2.11.3
 jqdatasdk==1.8.1
 lxml==4.5.1
 MarkupSafe==1.1.1
